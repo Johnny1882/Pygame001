@@ -11,6 +11,8 @@ pygame.display.set_caption('Pygame Platformer')
 
 WINDOW_SIZE = (600,400)
 
+font = pygame.font.SysFont(None, 20)
+
 screen = pygame.display.set_mode(WINDOW_SIZE,0,32) # initiate the window
 
 display = pygame.Surface((300,200)) # used as the surface for rendering, which is scaled
@@ -28,6 +30,8 @@ def generate_chunk(x,y):
     chunk_data = []
     for y_pos in range(CHUNK_SIZE):
         for x_pos in range(CHUNK_SIZE):
+            platform_generate = (random.randint(0,10) == 0)
+
             target_x = x * CHUNK_SIZE + x_pos
             target_y = y * CHUNK_SIZE + y_pos
             tile_type = 0 # nothing
@@ -38,9 +42,19 @@ def generate_chunk(x,y):
             elif target_y == 9:
                 if random.randint(1,5) == 1:
                     tile_type = 3 # plant
+            elif platform_generate:
+                tile_type = 4 # platform
             if tile_type != 0:
                 chunk_data.append([[target_x,target_y],tile_type])
     return chunk_data
+
+#---------draw text---------#
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, 1, color)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
+
 
 e.load_animations('data/images/entities/')
 
@@ -50,10 +64,12 @@ grass_img = pygame.image.load('data/images/grass.png')
 dirt_img = pygame.image.load('data/images/dirt.png')
 plant_img = pygame.image.load('data/images/plant.png').convert()
 plant_img.set_colorkey((255,255,255))
+platform_img = pygame.image.load('data/images/platform.png')
 
 tile_index = {1:grass_img,
               2:dirt_img,
-              3:plant_img
+              3:plant_img,
+              4:platform_img
               }
 
 jump_sound = pygame.mixer.Sound('data/audio/jump.wav')
@@ -66,13 +82,15 @@ pygame.mixer.music.play(-1)
 
 grass_sound_timer = 0
 
-player = e.entity(100,100,5,20,'player')
+player = e.entity(100,100,5,18,'player')
 
 background_objects = [[0.25,[120,10,70,400]],[0.25,[280,30,40,400]],[0.5,[30,40,40,400]],[0.5,[130,90,100,400]],[0.5,[300,80,120,400]]]
+score = 0
 
 while True: # game loop
     display.fill((146,244,255)) # clear screen by filling it with blue
-
+    draw_text('main menu', font, (0,0,0), screen, 20, 20)
+    
     if grass_sound_timer > 0:
         grass_sound_timer -= 1
 
@@ -90,7 +108,11 @@ while True: # game loop
         else:
             pygame.draw.rect(display,(15,76,73),obj_rect)
 
+    #auto generating system
     tile_rects = []
+
+    platform_map = {}
+
     for y in range(3):
         for x in range(4):
             target_x = x - 1 + int(round(scroll[0]/(CHUNK_SIZE*16)))
@@ -100,8 +122,9 @@ while True: # game loop
                 game_map[target_chunk] = generate_chunk(target_x,target_y)
             for tile in game_map[target_chunk]:
                 display.blit(tile_index[tile[1]],(tile[0][0]*16-scroll[0],tile[0][1]*16-scroll[1]))
-                if tile[1] in [1,2]:
+                if tile[1] in [1,2,4]:
                     tile_rects.append(pygame.Rect(tile[0][0]*16,tile[0][1]*16,16,16))    
+
 
     player_movement = [0,0]
     if moving_right == True:
@@ -157,7 +180,7 @@ while True: # game loop
                 moving_right = False
             if event.key == K_a:
                 moving_left = False
-        
+    
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),(0,0))
     pygame.display.update()
     clock.tick(60)
