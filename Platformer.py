@@ -66,7 +66,7 @@ pygame.mixer.music.play(-1)
 
 grass_sound_timer = 0
 
-player = e.entity(100,100,5,13,'player')
+player = e.entity(100,100,5,20,'player')
 
 background_objects = [[0.25,[120,10,70,400]],[0.25,[280,30,40,400]],[0.5,[30,40,40,400]],[0.5,[130,90,100,400]],[0.5,[300,80,120,400]]]
 
@@ -142,20 +142,20 @@ while True: # game loop
             pygame.quit()
             sys.exit()
         if event.type == KEYDOWN:
-            if event.key == K_w:
-                pygame.mixer.music.fadeout(1000)
-            if event.key == K_RIGHT:
-                moving_right = True
-            if event.key == K_LEFT:
-                moving_left = True
             if event.key == K_UP:
+                pygame.mixer.music.fadeout(1000)
+            if event.key == K_d:
+                moving_right = True
+            if event.key == K_a:
+                moving_left = True
+            if event.key == K_w:
                 if air_timer < 6:
                     jump_sound.play()
                     vertical_momentum = -5
         if event.type == KEYUP:
-            if event.key == K_RIGHT:
+            if event.key == K_d:
                 moving_right = False
-            if event.key == K_LEFT:
+            if event.key == K_a:
                 moving_left = False
         
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),(0,0))
