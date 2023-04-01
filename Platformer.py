@@ -31,7 +31,7 @@ def generate_chunk(x,y):
     chunk_data = []
     for y_pos in range(CHUNK_SIZE):
         for x_pos in range(CHUNK_SIZE):
-            platform_generate = (random.randint(0,10) == 0)
+            platform_generate = (random.randint(0,10 + int(score/100)) == 0)
 
             target_x = x * CHUNK_SIZE + x_pos
             target_y = y * CHUNK_SIZE + y_pos
@@ -74,6 +74,48 @@ def gameover():
         clock.tick(60)
 
 
+def main_menu():
+    click = False
+    while True:
+        
+        screen.fill((0,0,0))
+        manu_scaled_image = pygame.transform.scale(main_manu_img, (600,400))
+        start_image = pygame.transform.scale(main_manu_start_img, (200,50))
+
+        screen.blit(manu_scaled_image, (0, 0))
+        screen.blit(start_image, (50, 100))
+        my_big_font.render(screen, 'Main Manu', (10, 10))
+        
+        mx, my = pygame.mouse.get_pos()
+ 
+        button_1 = pygame.Rect(50, 100, 200, 50)
+        button_2 = pygame.Rect(50, 200, 200, 50)
+        if button_1.collidepoint((mx, my)):
+            if click:
+                return
+        # if button_2.collidepoint((mx, my)):
+        #     if click:
+        #         options()
+        # pygame.draw.rect(screen, (255, 0, 0), button_1)
+        pygame.draw.rect(screen, (255, 0, 0), button_2)
+ 
+        click = False
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+ 
+        pygame.display.update()
+        clock.tick(60)
+
+
 
 e.load_animations('data/images/entities/')
 
@@ -84,6 +126,9 @@ dirt_img = pygame.image.load('data/images/dirt.png')
 plant_img = pygame.image.load('data/images/plant.png').convert()
 plant_img.set_colorkey((255,255,255))
 platform_img = pygame.image.load('data/images/platform.png')
+main_manu_img = pygame.image.load('data/images/main_manu.png')
+main_manu_start_img = pygame.image.load('data/images/main_manu_start.png')
+
 
 my_font = ct.Font('data/images/small_font.png')
 my_big_font = ct.Font('data/images/large_font.png')
@@ -110,10 +155,20 @@ background_objects = [[0.25,[120,10,70,400]],[0.25,[280,30,40,400]],[0.5,[30,40,
 score = 0
 falling_distance = 0
 
+first_time = True
+player_dead = False
+
+
+
 while True: # game loop
+
+    if first_time or player_dead:
+        main_menu()
+        first_time = False
+        player_dead = False
+
     display.fill((146,244,255)) # clear screen by filling it with blue
 
-    
     if grass_sound_timer > 0:
         grass_sound_timer -= 1
 
@@ -193,7 +248,8 @@ while True: # game loop
                 random.choice(grass_sounds).play()
         
         if falling_distance > 200:
-            gameover()
+            player_dead = True
+            falling_distance = 0
         else:
             falling_distance = 0
             # damage = (falling_distance-10) * 2
