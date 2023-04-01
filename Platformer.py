@@ -55,6 +55,24 @@ def draw_text(text, font, color, surface, x, y):
     textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
+def gameover():
+    running = True
+    while running:
+        screen.fill((0,0,0))
+ 
+        draw_text('game over', font, (255, 255, 255), screen, 20, 20)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    running = False
+        
+        pygame.display.update()
+        clock.tick(60)
+
+
 
 e.load_animations('data/images/entities/')
 
@@ -82,10 +100,11 @@ pygame.mixer.music.play(-1)
 
 grass_sound_timer = 0
 
-player = e.entity(100,100,5,18,'player')
+player = e.entity(100,100,5,20,'player')
 
 background_objects = [[0.25,[120,10,70,400]],[0.25,[280,30,40,400]],[0.5,[30,40,40,400]],[0.5,[130,90,100,400]],[0.5,[300,80,120,400]]]
 score = 0
+falling_distance = 0
 
 while True: # game loop
     display.fill((146,244,255)) # clear screen by filling it with blue
@@ -122,8 +141,10 @@ while True: # game loop
                 game_map[target_chunk] = generate_chunk(target_x,target_y)
             for tile in game_map[target_chunk]:
                 display.blit(tile_index[tile[1]],(tile[0][0]*16-scroll[0],tile[0][1]*16-scroll[1]))
-                if tile[1] in [1,2,4]:
+                if tile[1] in [1,2]:
                     tile_rects.append(pygame.Rect(tile[0][0]*16,tile[0][1]*16,16,16))    
+                elif tile[1] in [4]:
+                    tile_rects.append(pygame.Rect(tile[0][0]*16,tile[0][1]*16+13,16,3))    
 
 
     player_movement = [0,0]
@@ -135,6 +156,11 @@ while True: # game loop
     vertical_momentum += 0.2
     if vertical_momentum > 3:
         vertical_momentum = 3
+    #falling damage
+    
+    if vertical_momentum > 0:
+        falling_distance += vertical_momentum
+        print(falling_distance)
 
     if player_movement[0] == 0:
         player.set_action('idle')
@@ -147,16 +173,29 @@ while True: # game loop
 
     collision_types = player.move(player_movement,tile_rects)
 
+
+
     if collision_types['bottom'] == True:
         air_timer = 0
+        double_jump = True # wether or not the player can double jump
         vertical_momentum = 0
         if player_movement[0] != 0:
             if grass_sound_timer == 0:
                 grass_sound_timer = 30
                 random.choice(grass_sounds).play()
+        
+        if falling_distance > 200:
+            gameover()
+        else:
+            falling_distance = 0
+            # damage = (falling_distance-10) * 2
+            # if damage > 10:
+            #     gameover()
     else:
         air_timer += 1
 
+
+    
     player.change_frame(1)
     player.display(display,scroll)
 
@@ -175,6 +214,9 @@ while True: # game loop
                 if air_timer < 6:
                     jump_sound.play()
                     vertical_momentum = -5
+                elif double_jump:
+                    vertical_momentum = -5
+                    double_jump = False
         if event.type == KEYUP:
             if event.key == K_d:
                 moving_right = False
