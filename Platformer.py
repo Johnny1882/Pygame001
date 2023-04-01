@@ -1,5 +1,6 @@
 import pygame, sys, os, random
 import data.engine as e
+import custom_text as ct
 clock = pygame.time.Clock()
 
 from pygame.locals import *
@@ -84,6 +85,9 @@ plant_img = pygame.image.load('data/images/plant.png').convert()
 plant_img.set_colorkey((255,255,255))
 platform_img = pygame.image.load('data/images/platform.png')
 
+my_font = ct.Font('data/images/small_font.png')
+my_big_font = ct.Font('data/images/large_font.png')
+
 tile_index = {1:grass_img,
               2:dirt_img,
               3:plant_img,
@@ -108,7 +112,7 @@ falling_distance = 0
 
 while True: # game loop
     display.fill((146,244,255)) # clear screen by filling it with blue
-    draw_text('main menu', font, (0,0,0), screen, 20, 20)
+
     
     if grass_sound_timer > 0:
         grass_sound_timer -= 1
@@ -160,7 +164,10 @@ while True: # game loop
     
     if vertical_momentum > 0:
         falling_distance += vertical_momentum
-        print(falling_distance)
+    
+    score -= round(vertical_momentum)
+    if score < 0:
+        score = 0
 
     if player_movement[0] == 0:
         player.set_action('idle')
@@ -224,5 +231,7 @@ while True: # game loop
                 moving_left = False
     
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),(0,0))
+    # my_font.render(screen, 'Hello World!', (20, 20))
+    my_big_font.render(screen, 'Score:' + str(score), (10, 10))
     pygame.display.update()
     clock.tick(60)
