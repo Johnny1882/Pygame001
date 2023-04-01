@@ -1,6 +1,6 @@
 import pygame, sys, os, random
 import data.engine as e
-import custom_text as ct
+import data.custom_text as ct
 clock = pygame.time.Clock()
 
 from pygame.locals import *
