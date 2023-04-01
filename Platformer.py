@@ -150,6 +150,9 @@ while True: # game loop
                 elif tile[1] in [4]:
                     tile_rects.append(pygame.Rect(tile[0][0]*16,tile[0][1]*16+13,16,3))    
 
+    score -= int(vertical_momentum)
+    if score < 0:
+        score = 0
 
     player_movement = [0,0]
     if moving_right == True:
@@ -165,9 +168,7 @@ while True: # game loop
     if vertical_momentum > 0:
         falling_distance += vertical_momentum
     
-    score -= round(vertical_momentum)
-    if score < 0:
-        score = 0
+    
 
     if player_movement[0] == 0:
         player.set_action('idle')
