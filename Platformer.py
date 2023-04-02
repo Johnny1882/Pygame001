@@ -158,7 +158,10 @@ falling_distance = 0
 first_time = True
 player_dead = False
 
+enemies = []
 
+# for i in range(5):
+#     enemies.append([0,e.entity(random.randint(0,600)-300,80,13,13,'enemy')])
 
 while True: # game loop
 
@@ -257,12 +260,39 @@ while True: # game loop
             #     gameover()
     else:
         air_timer += 1
+#---------------------ENEMY--------------------------------
+    # display_r = pygame.Rect(scroll[0],scroll[1],300,200)
 
+    for enemy in enemies:
+        # if display_r.colliderect(enemy[1].obj.rect):
+            # enemy[0] += 0.2
+            # if enemy[0] > 3:
+            #     enemy[0] = 3
+            enemy_movement = [0,enemy[0]]
+            if player.x > enemy[1].x + 5:
+                enemy_movement[0] = 0.5
+            if player.x < enemy[1].x - 5:
+                enemy_movement[0] = -0.5
+            if player.y > enemy[1].y + 5:
+                enemy_movement[1] = 0.5
+            if player.y < enemy[1].y - 5:
+                enemy_movement[1] = -0.5
+            collision_types = enemy[1].move(enemy_movement,tile_rects)
+            if collision_types['bottom'] == True:
+                enemy[0] = 0
 
-    
+            enemy[1].display(display,scroll)
+
+            if player.obj.rect.colliderect(enemy[1].obj.rect):
+                vertical_momentum = 4
+#-----------------------------------------------------
     player.change_frame(1)
     player.display(display,scroll)
-
+    
+    if random.randint(1,50) == 1:
+        enemies.append([0,e.entity(random.randint(0,600)-300,player.y+130,0,0,'enemy')])
+    
+        
     for event in pygame.event.get(): # event loop
         if event.type == QUIT:
             pygame.quit()
