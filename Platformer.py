@@ -160,6 +160,8 @@ player_dead = False
 
 enemies = []
 
+gun_1 = e.entity(0,0,0,0,'gun')
+
 # for i in range(5):
 #     enemies.append([0,e.entity(random.randint(0,600)-300,80,13,13,'enemy')])
 
@@ -262,7 +264,9 @@ while True: # game loop
         air_timer += 1
 #---------------------ENEMY--------------------------------
     # display_r = pygame.Rect(scroll[0],scroll[1],300,200)
-
+    if random.randint(1,50) == 1:
+        enemies.append([0,e.entity(random.randint(0,600)-300,player.y+130,0,0,'enemy')])
+    
     for enemy in enemies:
         # if display_r.colliderect(enemy[1].obj.rect):
             # enemy[0] += 0.2
@@ -285,12 +289,14 @@ while True: # game loop
 
             if player.obj.rect.colliderect(enemy[1].obj.rect):
                 vertical_momentum = 4
-#-----------------------------------------------------
+#----------------------gun----------------------------
+    gun_1.x = player.x
+    gun_1.y = player.y
+    
     player.change_frame(1)
     player.display(display,scroll)
     
-    if random.randint(1,50) == 1:
-        enemies.append([0,e.entity(random.randint(0,600)-300,player.y+130,0,0,'enemy')])
+    
     
         
     for event in pygame.event.get(): # event loop
