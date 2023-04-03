@@ -1,4 +1,4 @@
-import pygame, sys, os, random
+import pygame, sys, os, random, math
 import data.engine as e
 import data.custom_text as ct
 clock = pygame.time.Clock()
@@ -156,11 +156,15 @@ score = 0
 falling_distance = 0
 
 first_time = True
+first_time_1 = True
 player_dead = False
 
 enemies = []
 
 gun_1 = e.entity(0,0,0,0,'gun')
+
+bullets = []
+click = False
 
 # for i in range(5):
 #     enemies.append([0,e.entity(random.randint(0,600)-300,80,13,13,'enemy')])
@@ -229,19 +233,41 @@ while True: # game loop
         falling_distance += vertical_momentum
     
     
+    
+    
 
     if player_movement[0] == 0:
         player.set_action('idle')
     if player_movement[0] > 0:
         player.set_flip(False)
         player.set_action('run')
+        gun_1.set_flip(False)
     if player_movement[0] < 0:
         player.set_flip(True)
         player.set_action('run')
-
+        gun_1.set_flip(True)
+    
     collision_types = player.move(player_movement,tile_rects)
 
+    gun_1.x = player.x
+    gun_1.y = player.y - 2
+    gun_1.display(display,scroll)
 
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    mouse_x += scroll[0] - 186
+    mouse_y += scroll[1] - 132
+
+    if click:
+        x_diff = mouse_x - gun_1.x
+        y_diff = mouse_y - gun_1.y
+        x_vel = x_diff/math.sqrt(x_diff**2 + y_diff**2)
+        y_vel = y_diff/math.sqrt(x_diff**2 + y_diff**2)
+        bullets.append([e.entity(gun_1.x, gun_1.y, 0,0,'bullet'),[x_vel, y_vel]])
+        
+
+    for bullet in bullets:
+        bullet[0].move(bullet[1],tile_rects)
+        bullet[0].display(display,scroll)
 
     if collision_types['bottom'] == True:
         air_timer = 0
@@ -263,9 +289,9 @@ while True: # game loop
     else:
         air_timer += 1
 #---------------------ENEMY--------------------------------
-    # display_r = pygame.Rect(scroll[0],scroll[1],300,200)
+    display_r = pygame.Rect(scroll[0],scroll[1],400,300)
     if random.randint(1,50) == 1:
-        enemies.append([0,e.entity(random.randint(0,600)-300,player.y+130,0,0,'enemy')])
+        enemies.append([0,e.entity(random.randint(0,600)-300,player.y+130,5,5,'enemy')])
     
     for enemy in enemies:
         # if display_r.colliderect(enemy[1].obj.rect):
@@ -281,24 +307,25 @@ while True: # game loop
                 enemy_movement[1] = 0.5
             if player.y < enemy[1].y - 5:
                 enemy_movement[1] = -0.5
-            collision_types = enemy[1].move(enemy_movement,tile_rects)
-            if collision_types['bottom'] == True:
-                enemy[0] = 0
+            collision_types = enemy[1].move(enemy_movement, [])
+
+            if not display_r.colliderect(enemy[1].obj.rect):
+                enemies.remove(enemy)
 
             enemy[1].display(display,scroll)
 
             if player.obj.rect.colliderect(enemy[1].obj.rect):
                 vertical_momentum = 4
-#----------------------gun----------------------------
-    gun_1.x = player.x
-    gun_1.y = player.y
+#--------------------------------------------------
     
+
     player.change_frame(1)
     player.display(display,scroll)
     
     
     
-        
+    click = False
+
     for event in pygame.event.get(): # event loop
         if event.type == QUIT:
             pygame.quit()
@@ -317,6 +344,12 @@ while True: # game loop
                 elif double_jump:
                     vertical_momentum = -5
                     double_jump = False
+                    falling_distance = 0
+
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                click = True
+            
         if event.type == KEYUP:
             if event.key == K_d:
                 moving_right = False
@@ -325,6 +358,6 @@ while True: # game loop
     
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),(0,0))
     # my_font.render(screen, 'Hello World!', (20, 20))
-    my_big_font.render(screen, 'Score:' + str(score), (10, 10))
+    my_big_font.render(display, 'Score:' + str(score), (10, 10))
     pygame.display.update()
     clock.tick(60)
