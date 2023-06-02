@@ -3,3 +3,4 @@ player/run/ 4;4;4;4 loop
 enemy/idle/ 1 loop
 gun/idle/ 1 loop
 bullet/idle/ 1 loop
+blade/idle/ 1 loop

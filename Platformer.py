@@ -1,6 +1,8 @@
 import pygame, sys, os, random, math
 import data.engine as e
 import data.custom_text as ct
+import my_function.angle as my_angle
+
 clock = pygame.time.Clock()
 
 from pygame.locals import *
@@ -159,11 +161,17 @@ first_time = True
 first_time_1 = True
 player_health = 100
 player_dead = False
+player_face_right = True 
 
 enemies = []
 
 gun_1 = e.entity(0,0,0,0,'gun')
+blade_1 = e.entity(0,0,0,0,'blade')
+# blade_1.offset = [10,-11]
+blade_1.flip = True
 
+
+weapon_id = 'blade'
 bullets = []
 click = False
 
@@ -174,7 +182,6 @@ while True: # game loop
 
     if first_time or player_dead:
         main_menu()
-        first_time = False
         player_dead = False
 
     display.fill((146,244,255)) # clear screen by filling it with blue
@@ -239,33 +246,71 @@ while True: # game loop
     if player_movement[0] > 0:
         player.set_flip(False)
         player.set_action('run')
-        gun_1.set_flip(False)
+        player_face_right = True
     if player_movement[0] < 0:
         player.set_flip(True)
         player.set_action('run')
-        gun_1.set_flip(True)
-    
-    collision_types = player.move(player_movement,tile_rects)
-
-    gun_1.x = player.x
-    gun_1.y = player.y - 2
-    gun_1.display(display,scroll)
-
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    mouse_x += scroll[0] - 186
-    mouse_y += scroll[1] - 132
-
-    if click:
-        x_diff = mouse_x - gun_1.x
-        y_diff = mouse_y - gun_1.y
-        x_vel = x_diff/math.sqrt(x_diff**2 + y_diff**2)
-        y_vel = y_diff/math.sqrt(x_diff**2 + y_diff**2)
-        bullets.append([e.entity(gun_1.x, gun_1.y, 0,0,'bullet'),[x_vel, y_vel]])
+        player_face_right = False
         
+    collision_types = player.move(player_movement,tile_rects)
+#-------------weapons-------------------#
+    if weapon_id == 'gun':
+        gun_1.x = player.x
+        gun_1.y = player.y - 2
+        gun_1.display(display,scroll)
 
-    for bullet in bullets:
-        bullet[0].move(bullet[1],tile_rects)
-        bullet[0].display(display,scroll)
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        mouse_x += scroll[0] - 186
+        mouse_y += scroll[1] - 132
+
+        if click:
+            x_diff = mouse_x - gun_1.x
+            y_diff = mouse_y - gun_1.y
+            x_vel = x_diff/math.sqrt(x_diff**2 + y_diff**2)
+            y_vel = y_diff/math.sqrt(x_diff**2 + y_diff**2)
+            bullets.append([e.entity(gun_1.x, gun_1.y, 0,0,'bullet'),[x_vel, y_vel]])
+
+        for bullet in bullets:
+            bullet[0].move(bullet[1],tile_rects)
+            bullet[0].display(display,scroll)
+    
+    elif weapon_id == 'blade':
+        blade_1.x = player.x - 10
+        blade_1.y = player.y - 11
+        blade_1.display(display,scroll)
+
+        if first_time or index >= len(angle_list):
+            angle_list = [0]
+            index = 0
+            angle = 0
+        else:
+            angle = angle_list[index]
+            index += 1   
+        
+        if player_face_right:  
+            blade_1.set_flip(True)
+            angle = -angle
+        if player_face_right == False:
+            blade_1.set_flip(False)
+        #initialize action
+        if click:
+            angle_list = my_angle.get_angle_list(0, [-30, 100, 0], 10)
+            index = 0
+        blade_1.rotation = angle
+    
+
+
+
+
+    #     index = 0
+    #     action = [10,-50,0]
+    #     next, angle = goto_angle(action[index])
+    # if next:
+    #     index += 1
+    
+
+            
+
 #---------------------falling damage--------------------------------
     if collision_types['bottom'] == True:
         air_timer = 0
@@ -289,6 +334,7 @@ while True: # game loop
     
     if player_health <= 0:
         player_dead = True
+
 #---------------------ENEMY--------------------------------
     display_r = pygame.Rect(scroll[0],scroll[1],400,300)
     if random.randint(1,26) == 1:
@@ -370,7 +416,9 @@ while True: # game loop
     my_font.render(display, 'HP', (10, 10))
     pygame.draw.rect(display, (255,0,0), (20, 10, player_health, 10))
 
-
+    #-----------------ending-------------------#
+    if first_time:
+        first_time = False
 
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),(0,0))
     # my_font.render(screen, 'Hello World!', (20, 20))

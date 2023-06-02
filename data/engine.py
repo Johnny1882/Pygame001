@@ -244,10 +244,12 @@ class entity(object):
         if image_to_render != None:
             center_x = image_to_render.get_width()/2
             center_y = image_to_render.get_height()/2
+            image_to_render = image_to_render
             image_to_render = pygame.transform.rotate(image_to_render,self.rotation)
             if self.alpha != None:
                 image_to_render.set_alpha(self.alpha)
             blit_center(surface,image_to_render,(int(self.x)-scroll[0]+self.offset[0]+center_x,int(self.y)-scroll[1]+self.offset[1]+center_y))
+
  
 # animation stuff
 
