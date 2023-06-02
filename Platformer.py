@@ -157,6 +157,7 @@ falling_distance = 0
 
 first_time = True
 first_time_1 = True
+player_health = 100
 player_dead = False
 
 enemies = []
@@ -178,6 +179,7 @@ while True: # game loop
 
     display.fill((146,244,255)) # clear screen by filling it with blue
 
+#--------------------------------#
     if grass_sound_timer > 0:
         grass_sound_timer -= 1
 
@@ -232,10 +234,6 @@ while True: # game loop
     if vertical_momentum > 0:
         falling_distance += vertical_momentum
     
-    
-    
-    
-
     if player_movement[0] == 0:
         player.set_action('idle')
     if player_movement[0] > 0:
@@ -268,7 +266,7 @@ while True: # game loop
     for bullet in bullets:
         bullet[0].move(bullet[1],tile_rects)
         bullet[0].display(display,scroll)
-
+#---------------------falling damage--------------------------------
     if collision_types['bottom'] == True:
         air_timer = 0
         double_jump = True # wether or not the player can double jump
@@ -278,8 +276,8 @@ while True: # game loop
                 grass_sound_timer = 30
                 random.choice(grass_sounds).play()
         
-        if falling_distance > 200:
-            player_dead = True
+        if falling_distance > 100:
+            player_health -= falling_distance/5
             falling_distance = 0
         else:
             falling_distance = 0
@@ -288,10 +286,13 @@ while True: # game loop
             #     gameover()
     else:
         air_timer += 1
+    
+    if player_health <= 0:
+        player_dead = True
 #---------------------ENEMY--------------------------------
     display_r = pygame.Rect(scroll[0],scroll[1],400,300)
-    if random.randint(1,50) == 1:
-        enemies.append([0,e.entity(random.randint(0,600)-300,player.y+130,5,5,'enemy')])
+    if random.randint(1,26) == 1:
+        enemies.append([0,e.entity(random.randint(0,600)-300,player.y+130,20,10,'enemy')])
     
     for enemy in enemies:
         # if display_r.colliderect(enemy[1].obj.rect):
@@ -313,9 +314,15 @@ while True: # game loop
                 enemies.remove(enemy)
 
             enemy[1].display(display,scroll)
-
-            if player.obj.rect.colliderect(enemy[1].obj.rect):
-                vertical_momentum = 4
+    for enemy in enemies:
+        if player.obj.rect.colliderect(enemy[1].obj.rect):
+            player_health -= 1
+            vertical_momentum -= 2
+            if vertical_momentum < -5:
+                vertical_momentum = -5
+            
+            break
+                
 #--------------------------------------------------
     
 
@@ -356,6 +363,15 @@ while True: # game loop
             if event.key == K_a:
                 moving_left = False
     
+
+
+
+    #----------------user interface----------------#
+    my_font.render(display, 'HP', (10, 10))
+    pygame.draw.rect(display, (255,0,0), (20, 10, player_health, 10))
+
+
+
     screen.blit(pygame.transform.scale(display,WINDOW_SIZE),(0,0))
     # my_font.render(screen, 'Hello World!', (20, 20))
     my_big_font.render(display, 'Score:' + str(score), (10, 10))
